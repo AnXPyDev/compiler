@@ -1,0 +1,1 @@
+void emptyDestructor(void *this) {}
