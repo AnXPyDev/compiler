@@ -8,12 +8,20 @@ int LIBDEBUG = 0;
 #include <string.h>
 #include <stdint.h>
 
-typedef size_t Size;
-
 #include "lib/Util.c"
 #include "lib/String.c"
-#include "lib/IO.c"
+
+#include "lib/OutStream.c"
+#include "lib/InStream.c"
+
 #include "lib/Vector.c"
+
+#include "lib/streams/FileInStream.c"
+#include "lib/streams/StringInStream.c"
+
+#include "lib/streams/FileOutStream.c"
+#include "lib/streams/StringOutStream.c"
+
 #include "lib/Map.c"
 
 #include "compiler/Type.c"
