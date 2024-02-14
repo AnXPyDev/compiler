@@ -1,31 +1,50 @@
 struct IValue;
 
-struct Value {
+typedef struct {
     const struct IValue *interface;
-};
-
-typedef void (*fn_Value_destroy)(void *this);
-typedef struct Type *(*fn_Value_getType)(void *this);
-typedef void (*fn_Value_fprint)(void *this, FILE *);
+    void *object;
+} Value;
 
 struct IValue {
-    fn_Value_destroy destroy;
-    fn_Value_getType getType;
-    fn_Value_fprint fprint;
+    void  (*destroy)(void *this);
+    const Type  (*getType)(const void *this);
+    void  (*print  )(const void *this, OutStream stream);
+    Value (*copy   )(const void *this, Allocator allocator);
+    Value (*move   )(const void *this, Allocator allocator);
 };
 
-#define thiscast ((struct Value*)this)
-
-void Value_destroy(void *this) {
-    return thiscast->interface->destroy(this);
+void Value_destroy(Value this) {
+    return this.interface->destroy(this.object);
 }
 
-struct Type *Value_getType(void *this) {
-    return thiscast->interface->getType(this);
+const Type Value_getType(const Value this) {
+    return this.interface->getType(this.object);
 }
 
-void Value_fprint(void *this, FILE *outstream) {
-    return thiscast->interface->fprint(this, outstream);
+void Value_print(const Value this, OutStream stream) {
+    return this.interface->print(this.object, stream);
 }
 
-#undef thiscast
+Value Value_copy(const Value this, Allocator allocator) {
+    return this.interface->copy(this.object, allocator);
+}
+
+Value Value_move(const Value this, Allocator allocator) {
+    return this.interface->move(this.object, allocator);
+}
+
+void Value_free(Value this, Allocator allocator) {
+    return Allocator_free(allocator, this.object);
+}
+
+int Value_isNull(Value this) {
+    if (!this.interface) {
+        return 1;
+    }
+    return 0;
+}
+
+Value Value_newNull() {
+    Value this = { NULL, NULL };
+    return this;
+}

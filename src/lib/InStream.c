@@ -2,37 +2,28 @@ struct IInStream;
 
 typedef struct {
     const struct IInStream *interface;
+    void *object;
 } InStream;
 
-
-typedef int (*fn_InStream_getc)(void *this);
-typedef int (*fn_InStream_read)(void *this, void *buf, Size size);
-typedef int (*fn_InStream_end)(void *this);
-typedef int (*fn_InStream_close)(void *this);
-
 struct IInStream {
-    fn_InStream_getc getc;
-    fn_InStream_read read;
-    fn_InStream_end end;
-    fn_InStream_close close;
+    int (*getc)(void *this);
+    int (*read)(void *this, void *buf, Size size);
+    int (*end)(void *this);
+    int (*close)(void *this);
 };
 
-#define this ((InStream*)vthis)
-
-int InStream_getc(void *vthis) {
-    return this->interface->getc(vthis);
+int InStream_getc(InStream this) {
+    return this.interface->getc(this.object);
 }
 
-int InStream_read(void *vthis, void *buf, Size size) {
-    return this->interface->read(vthis, buf, size);
+int InStream_read(InStream this, void *buf, Size size) {
+    return this.interface->read(this.object, buf, size);
 }
 
-int InStream_end(void *vthis) {
-    return this->interface->end(vthis);
+int InStream_end(InStream this) {
+    return this.interface->end(this.object);
 }
 
-int InStream_close(void *vthis) {
-    return this->interface->close(vthis);
+int InStream_close(InStream this) {
+    return this.interface->close(this.object);
 }
-
-#undef this

@@ -25,8 +25,8 @@ void fprint_vector(FILE *outstream, Vector *vector, void (*fprint_item)(FILE *ou
 void test_vector() {
     fprintf(stderr, "Testing Vector\n");
 
-    Vector v;
-    Vector_create(&v, sizeof(int), 10);
+    Vector v = Vector_new(standardAllocator, sizeof(int));
+    Vector_init(&v, 10);
 
     for (Size i = 0; i < 50; i++) {
         *(int*)Vector_push(&v) = i * 2;
@@ -42,13 +42,39 @@ void test_vector() {
     Vector_destroy(&v);
 }
 
+void write_message(OutStream stream) {
+    OutStream_puts(stream, "Hello");
+    OutStream_putc(stream, ' ');
+    OutStream_puts(stream, "world!");
+    OutStream_flush(stream);
+}
+
+void test_stream() {
+    FileOutStream out = FileOutStream_new(stderr);
+    StringOutStream sw = StringOutStream_new(standardAllocator);
+
+    OutStream out1 = FileOutStream_OutStream(&out);
+    OutStream out2 = StringOutStream_OutStream(&sw);
+
+    write_message(out1);
+    write_message(out2);
+
+    String s = String_new(standardAllocator);
+    StringOutStream_move(&sw, &s);
+
+    OutStream_putc(out1, '\n');
+    OutStream_puts(out1, String_begin(&s));
+    OutStream_flush(out1);
+
+    String_destroy(&s);
+}
+
 #define keyc 10
 
 void test_map() {
     fprintf(stderr, "Testing map\n");
 
-    Map m;
-    Map_create(&m, sizeof(int));
+    Map m = Map_new(standardAllocator, sizeof(int));
 
     const char *keys[keyc] = {
         "key1", "key2", "key3", "key4", "key5", "key6", "key7", "key8", "key9", "key10"
@@ -97,5 +123,6 @@ void test_map() {
 int main() {
     test_vector();
     test_map();
+    test_stream();
     return 0;
 }

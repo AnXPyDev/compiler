@@ -1,45 +1,62 @@
-enum PrimitiveTypes {
-    PRIMITIVE_I32
-};
-
-struct PrimitiveValue {
-    struct Value header;
-    enum PrimitiveTypes type;
+typedef struct {
+    EType_Primitive type;
     union {
         int32_t I32;
     } value;
-};
+} PrimitiveValue;
 
-#define thiscast ((struct PrimitiveValue*)this)
+extern const struct IValue IPrimitiveValue;
 
-struct Type *PrimitiveValue_getType(void *this) {
-    return NULL;
+Value PrimitiveValue_Value(PrimitiveValue *this) {
+    Value value = { &IPrimitiveValue, this };
+    return value;
 }
 
-void PrimitiveValue_fprint(void *this, FILE *outstream) {
-    switch (thiscast->type) {
-        case PRIMITIVE_I32:
-            fprintf(outstream, "%d", thiscast->value.I32);
-        default:
+#define this ((PrimitiveValue*)vthis)
+
+void PrimitiveValue_destroy(void *vthis) {
+}
+
+Type PrimitiveValue_getType(const void *vthis) {
+    return RT_primitiveTypes[this->type];
+}
+
+// TODO optimize
+void PrimitiveValue_print(const void *vthis, OutStream stream) {
+    char buf[64];
+    switch (this->type) {
+        case TYPE_PRIMITIVE_I32:
+            sprintf(buf, "%d", this->value.I32);
             break;
+        default:
+            OutStream_puts(stream, "?");
+            return;
     }
+    OutStream_puts(stream, buf);
 }
 
-#undef thiscast
+Value PrimitiveValue_copy(const void *vthis, Allocator allocator) {
+    PrimitiveValue *copy = Allocator_malloc(allocator, sizeof(PrimitiveValue));
+    *copy = *this;
+    return PrimitiveValue_Value(copy);
+}
+
+Value PrimitiveValue_move(const void *vthis, Allocator allocator) {
+    return PrimitiveValue_copy(vthis, allocator);
+}
+
+#undef this
 
 const struct IValue IPrimitiveValue = {
-   &emptyDestructor,
-   &PrimitiveValue_getType,
-   &PrimitiveValue_fprint
+    &PrimitiveValue_destroy,
+    &PrimitiveValue_getType,
+    &PrimitiveValue_print,
+    &PrimitiveValue_copy
 };
 
-
-void PrimitiveValue_setup(struct PrimitiveValue *this) {
-    this->header.interface = &IPrimitiveValue;
-}
-
-void PrimitiveValue_createInt(struct PrimitiveValue *this, int32_t value) {
-    PrimitiveValue_setup(this);
-    this->type = PRIMITIVE_I32;
-    this->value.I32 = value;
+PrimitiveValue PrimitiveValue_newInt(int32_t value) {
+    PrimitiveValue this;
+    this.type = TYPE_PRIMITIVE_I32;
+    this.value.I32 = value;
+    return this;
 }

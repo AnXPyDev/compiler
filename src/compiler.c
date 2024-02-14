@@ -9,10 +9,15 @@ int LIBDEBUG = 0;
 #include <stdint.h>
 
 #include "lib/Util.c"
-#include "lib/String.c"
+#include "lib/DataBuffer.c"
+
+#include "lib/Allocator.c"
+#include "lib/allocators/Standard.c"
 
 #include "lib/OutStream.c"
 #include "lib/InStream.c"
+
+#include "lib/String.c"
 
 #include "lib/Vector.c"
 
@@ -24,14 +29,24 @@ int LIBDEBUG = 0;
 
 #include "lib/Map.c"
 
+#include "compiler/decl.h"
+#include "compiler/types.h"
+
 #include "compiler/Type.c"
+#include "compiler/types/Primitive.c"
+#include "compiler/types/Meta.c"
 
 #include "compiler/Value.c"
+
+#include "compiler/runtime.c"
+
+#include "compiler/Token.c"
+#include "compiler/Declaration.c"
+
 #include "compiler/values/Primitive.c"
-#include "compiler/values/Sequence.c"
+
+#include "compiler/Context.c"
 
 #include "compiler/Expression.c"
 #include "compiler/expressions/Value.c"
-
-#include "compiler/Token.c"
-#include "compiler/Tree.c"
+#include "compiler/expressions/Token.c"

@@ -1,25 +1,24 @@
 struct IExpression;
 
-struct Expression {
+typedef struct {
     const struct IExpression *interface;
-};
-
-typedef void (*fn_Expression_destroy)(void *this);
-typedef struct Value *(*fn_Expression_evaluate)(void *this);
+    void *object;
+} Expression;
 
 struct IExpression {
-    fn_Expression_destroy destroy;
-    fn_Expression_evaluate evaluate;
+    void   (*destroy)(void *this);
+    Value  (*evaluate)(void *this, Context*);
+    void   (*print)(void *this, OutStream stream);
 };
 
-#define thiscast ((struct Expression*)this)
-
-void Expression_destroy(void *this) {
-    return thiscast->interface->destroy(this);
+void Expression_destroy(Expression this) {
+    return this.interface->destroy(this.object);
 };
 
-struct Value *Expression_evaluate(void *this) {
-    return thiscast->interface->evaluate(this);
+Value Expression_evaluate(Expression this, Context *context) {
+    return this.interface->evaluate(this.object, context);
 };
 
-#undef thiscast
+void Expression_print(Expression this, OutStream stream) {
+    return this.interface->print(this.object, stream);
+}

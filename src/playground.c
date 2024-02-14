@@ -1,12 +1,13 @@
 #include <stdio.h>
 
-struct X {
-    int x;
-    char blob[0]; 
-};
+typedef void (*fn_Test)(void *x);
+
+void test(int *x) {
+
+}
+
 
 int main() {
-    struct X x;
-    fprintf(stderr, "Sizeof X %u\n", sizeof(struct X));
-    fprintf(stderr, "%p %p %p %p\n", &x, &x.x, &x.blob, (void*)&x + 4);
+    fn_Test f = (void*)321321;
+    f(NULL);
 }

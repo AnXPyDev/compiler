@@ -1,5 +1,4 @@
 typedef struct {
-    OutStream header;
     FILE *fp;
 } FileOutStream;
 
@@ -34,10 +33,20 @@ const struct IOutStream IFileOutStream = {
     &FileOutStream_puts,
     &FileOutStream_write,
     &FileOutStream_flush,
-    FileOutStream_close
+    &FileOutStream_close
 };
 
 void FileOutStream_create(FileOutStream *this, FILE *fp) {
-    this->header.interface = &IFileOutStream;
     this->fp = fp;
+}
+
+FileOutStream FileOutStream_new(FILE *fp) {
+    FileOutStream this;
+    FileOutStream_create(&this, fp);
+    return this;
+}
+
+OutStream FileOutStream_OutStream(FileOutStream *this) {
+    OutStream outstream = { &IFileOutStream, this };
+    return outstream;
 }

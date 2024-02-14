@@ -1,26 +1,44 @@
 typedef struct {
+    Allocator allocator;
     Size item_size;
     Size size;
     Size capacity;
     void *data;
 } Vector;
 
-void Vector_create(Vector *this, Size item_size, Size capacity) {
+void Vector_create(Vector *this, Allocator allocator, Size item_size) {
+    this->allocator = allocator;
     this->item_size = item_size;
-    this->capacity = capacity;
     this->size = 0;
-    this->data = malloc(this->item_size * this->capacity);
-}
-
-void Vector_destroy(Vector *this) {
     this->capacity = 0;
-    this->size = 0;
-    free(this->data);
     this->data = NULL;
 }
 
+Vector Vector_new(Allocator allocator, Size item_size) {
+    Vector this;
+    Vector_create(&this, allocator, item_size);
+    return this;
+}
+
+void Vector_init(Vector *this, Size capacity) {
+    this->capacity = capacity;
+    this->size = 0;
+    this->data = Allocator_malloc(this->allocator, this->item_size * this->capacity);
+}
+
+void Vector_nullify(Vector *this) {
+    this->data = NULL;
+    this->size = 0;
+    this->capacity = 0;
+}
+
+void Vector_destroy(Vector *this) {
+    Allocator_free(this->allocator, this->data);
+    Vector_nullify(this);
+}
+
 void Vector_resize(Vector *this, Size capacity) {
-    this->data = realloc(this->data, this->item_size * capacity);
+    this->data = Allocator_realloc(this->allocator, this->data, this->item_size * capacity);
     this->capacity = capacity;
     if (this->size > this->capacity) {
         this->size = this->capacity;
@@ -35,7 +53,7 @@ void Vector_expand(Vector *this) {
     if (LIBDEBUG) {
         fprintf(stderr, "%u\n", this->capacity);
     }
-    this->data = realloc(this->data, this->item_size * this->capacity);
+    this->data = Allocator_realloc(this->allocator, this->data, this->item_size * this->capacity);
 }
 
 void Vector_expand_to(Vector *this, Size capacity) {
@@ -47,7 +65,7 @@ void Vector_expand_to(Vector *this, Size capacity) {
         newCapacity = (newCapacity + 1) * 2;
     }
     this->capacity = newCapacity;
-    this->data = realloc(this->data, this->item_size * this->capacity);
+    this->data = Allocator_realloc(this->allocator, this->data, this->item_size * this->capacity);
 }
 
 void *Vector_push(Vector *this) {
@@ -84,18 +102,20 @@ void *Vector_end(Vector *this) {
     return this->data + this->item_size * this->size;
 }
 
-void Vector_join(Vector *this, void *data, Size count) {
+void Vector_join(Vector *this, const void *data, Size count) {
     if (this->capacity < this->size + count) {
         Vector_resize(this, this->size + count);
     }
     memcpy(Vector_end(this), data, this->item_size * count);
+    this->size += count;
 }
 
-void Vector_append(Vector *this, void *data, Size count) {
+void Vector_append(Vector *this, const void *data, Size count) {
     if (this->capacity < this->size + count) {
         Vector_expand_to(this, this->size + count);
     }
     memcpy(Vector_end(this), data, this->item_size * count);
+    this->size += count;
 }
 
 void Vector_remove(Vector *this, Size index) {
@@ -114,4 +134,21 @@ void Vector_remove(Vector *this, Size index) {
 
 void Vector_clear(Vector *this) {
     this->size = 0;
+}
+
+void *Vector_move_buffer(Vector *this, void *buffer, Size capacity, Size size) {
+    this->data = buffer;
+    this->capacity = capacity;
+    this->size = size;
+}
+
+void *Vector_copy_buffer(Vector *this, void *buffer, Size size) {
+    this->data = Allocator_malloc(this->allocator, size * this->item_size);
+    memcpy(this->data, buffer, size * this->item_size);
+    this->capacity = size;
+    this->size = size;
+}
+
+void *Vector_copy(Vector *this, Vector *other) {
+    Vector_copy_buffer(this, other->data, other->size);
 }

@@ -1,26 +1,38 @@
-struct ExpressionValue {
-    struct Expression header;
-    struct Value *value;
-};
+typedef struct {
+    Value value;
+} ValueExpression;
 
-#define thiscast ((struct ExpressionValue*)this)
+#define this ((ValueExpression*)vthis)
 
-void ExpressionValue_destroy(void *this) {
-    Value_destroy(thiscast->value);
+void ValueExpression_destroy(void *vthis) {
+    Value_destroy(this->value);
 }
 
-struct Value *ExpressionValue_evaluate(void *this) {
-    return thiscast->value;
+Value ValueExpression_evaluate(void *vthis, Context *context) {
+    return this->value;
 }
 
-#undef thiscast
+void ValueExpression_print(void *vthis, OutStream stream) {
+    OutStream_puts(stream, "ValueExpression{ ");
+    Value_print(this->value, stream);
+    OutStream_puts(stream, " }");
+}
 
-const struct IExpression IExpressionValue = {
-    &ExpressionValue_destroy,
-    &ExpressionValue_evaluate 
+#undef this
+
+const struct IExpression IValueExpression = {
+    &ValueExpression_destroy,
+    &ValueExpression_evaluate,
+    &ValueExpression_print
 };
 
-void ExpressionValue_create(struct ExpressionValue *this, struct Value *value) {
-    this->header.interface = &IExpressionValue;
-    this->value = value;
+ValueExpression ValueExpression_new(Value value) {
+    ValueExpression this;
+    this.value = value;
+    return this;
+}
+
+Expression ValueExpression_Expression(ValueExpression *this) {
+    Expression expression = { &IValueExpression, this };
+    return expression;
 }

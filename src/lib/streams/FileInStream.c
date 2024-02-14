@@ -1,5 +1,4 @@
 typedef struct {
-    InStream header;
     FILE *fp;
 } FileInStream;
 
@@ -31,6 +30,16 @@ const struct IInStream IFileInStream = {
 };
 
 void FileInStream_create(FileInStream *this, FILE *fp) {
-    this->header.interface = &IFileInStream;
     this->fp = fp;
+}
+
+FileInStream FileInStream_new(FILE *fp) {
+    FileInStream this;
+    FileInStream_create(&this, fp);
+    return this;
+}
+
+InStream FileInStream_InStream(FileInStream *this) {
+    InStream instream = { &IFileInStream, this };
+    return instream;
 }
