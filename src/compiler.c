@@ -33,20 +33,30 @@ int LIBDEBUG = 0;
 #include "compiler/types.h"
 
 #include "compiler/Type.c"
-#include "compiler/types/Primitive.c"
-#include "compiler/types/Meta.c"
+#include "compiler/types/Basic.c"
+#include "compiler/types/Sequence.c"
+#include "compiler/types/Callable.c"
+
+extern Type RT_basicTypes[];
 
 #include "compiler/Value.c"
+#include "compiler/values/None.c"
 
 #include "compiler/runtime.c"
 
 #include "compiler/Token.c"
-#include "compiler/Declaration.c"
-
-#include "compiler/values/Primitive.c"
+//#include "compiler/Declaration.c"
 
 #include "compiler/Context.c"
 
 #include "compiler/Expression.c"
+
+#include "compiler/values/Primitive.c"
+#include "compiler/values/Callable.c"
+#include "compiler/values/Sequence.c"
+
 #include "compiler/expressions/Value.c"
 #include "compiler/expressions/Token.c"
+#include "compiler/expressions/Sequence.c"
+#include "compiler/expressions/Builtin.c"
+#include "compiler/expressions/Call.c"

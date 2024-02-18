@@ -1,33 +1,63 @@
 #include "compiler.c"
 
+Value builtin_test(Context *context, void *payload) {
+    return RT_NONE;
+}
+
+
+CallableValue make_function(const Token *argname, BuiltinExpression *expression) {
+    CallableValue val;
+    val.expression = BuiltinExpression_Expression(expression);
+    val.arguments = Vector_const_proxy((void*)argname, sizeof(Token), 1);
+    val.type.ret = RT_basicTypes[TYPE_META_ANY];
+    val.type.args.elements = Vector_const_proxy((void*)&RT_basicTypes[TYPE_PRIMITIVE_I32], sizeof(Type), 1);
+    return val;
+}
+
+Value func_test(Context *context, void *payload) {
+    const Token *argname = payload;
+    Token_print(argname, RT_STDERR);
+    OutStream_puts(RT_STDERR, " ");
+    Value val = Context_getValue(context, argname);
+    Value_print(val, RT_STDERR);
+    OutStream_puts(RT_STDERR, "\n");
+    return RT_NONE;
+}
+
 int main() {
     runtime_init();
 
-    FileOutStream os_stderr_ = FileOutStream_new(stderr);
-    OutStream os_stderr = FileOutStream_OutStream(&os_stderr_);
-
     Context ctx = Context_new(RT_ALLOC, NULL);
-    PrimitiveValue pval = PrimitiveValue_newInt(321321);
 
-    Value val = PrimitiveValue_Value(&pval);
+    Token funcname = Token_const_proxy("func");
+    Token argname = Token_const_proxy("arg1");
+    BuiltinExpression func = BuiltinExpression_new("test", &func_test, &argname);
 
-    Token tkn = Token_new_cstring(RT_ALLOC, "testVar");
-    Declaration decl = Declaration_new(Value_getType(val), Token_copy(&tkn, RT_ALLOC));
+    CallableValue callable = make_function(&argname, &func);
+    Context_declare(&ctx, CallableValue_getType(&callable), &funcname);
+    Context_setValue(&ctx, &funcname, CallableValue_Value(&callable), NULL);
 
-    Context_declare(&ctx, &decl);
-    Context_setValue(&ctx, &tkn, val, NULL);
+    Value val = Context_getValue(&ctx, &funcname);
+    Value_print(val, RT_STDERR);
+    OutStream_puts(RT_STDERR, "\n");
 
-    Value_destroy(val);
 
-    TokenExpression ex_get_ = TokenExpression_new(Token_copy(&tkn, RT_ALLOC));
-    Expression ex_get = TokenExpression_Expression(&ex_get_);
+    TokenExpression ex_getCallable;
+    ex_getCallable.token = funcname;
 
-    val = Expression_evaluate(ex_get, &ctx);
+    PrimitiveValue numval = PrimitiveValue_newInt(1234);
+    ValueExpression ex_arg;
+    ex_arg.value = PrimitiveValue_Value(&numval);
+    Expression ex_a1 = ValueExpression_Expression(&ex_arg);
 
-    Value_print(val, os_stderr);
-    OutStream_puts(os_stderr, "\n");
+    SequenceExpression ex_getArgs;
+    ex_getArgs.expressions = Vector_const_proxy(&ex_a1, sizeof(Expression), 1);
 
-    Expression_destroy(ex_get);
-    Token_destroy(&tkn);
+    CallExpression call;
+    call.callable = TokenExpression_Expression(&ex_getCallable);
+    call.arguments = SequenceExpression_Expression(&ex_getArgs);
+
+    CallExpression_evaluate(&call, &ctx);
+
     Context_destroy(&ctx);
 }

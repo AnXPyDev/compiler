@@ -36,15 +36,3 @@ Value Value_move(const Value this, Allocator allocator) {
 void Value_free(Value this, Allocator allocator) {
     return Allocator_free(allocator, this.object);
 }
-
-int Value_isNull(Value this) {
-    if (!this.interface) {
-        return 1;
-    }
-    return 0;
-}
-
-Value Value_newNull() {
-    Value this = { NULL, NULL };
-    return this;
-}

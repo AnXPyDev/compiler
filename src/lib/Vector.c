@@ -20,6 +20,14 @@ Vector Vector_new(Allocator allocator, Size item_size) {
     return this;
 }
 
+Vector Vector_const_proxy(void *data, Size item_size, Size size) {
+    Vector this;
+    this.item_size = item_size;
+    this.data = data;
+    this.size = size;
+    return this;
+}
+
 void Vector_init(Vector *this, Size capacity) {
     this->capacity = capacity;
     this->size = 0;
@@ -80,6 +88,11 @@ void *Vector_push(Vector *this) {
     return this->data + this->item_size * (this->size - 1);
 }
 
+void *Vector_push_unsafe(Vector *this) {
+    this->size++;
+    return this->data + this->item_size * (this->size - 1);
+}
+
 void Vector_pop(Vector *this) {
     if (this->size > 0) {
         this->size--;
@@ -94,11 +107,27 @@ void *Vector_get(Vector *this, Size index) {
     return this->data + this->item_size * index;
 }
 
+const void *Vector_cget(const Vector *this, Size index) {
+    if (index >= this->size) {
+        return NULL;
+    }
+
+    return this->data + this->item_size * index;
+}
+
 void *Vector_begin(Vector *this) {
     return this->data;
 }
 
 void *Vector_end(Vector *this) {
+    return this->data + this->item_size * this->size;
+}
+
+const void *Vector_cbegin(const Vector *this) {
+    return this->data;
+}
+
+const void *Vector_cend(const Vector *this) {
     return this->data + this->item_size * this->size;
 }
 

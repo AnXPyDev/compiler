@@ -18,6 +18,13 @@ String String_new(Allocator allocator) {
     return this;
 }
 
+String String_const_proxy(const char *str) {
+    String this;
+    this.data = (char*)str;
+    this.length = strlen(str);
+    return this;
+}
+
 void String_zero(String *this) {
     this->data[this->length] = 0;
 }
@@ -107,7 +114,7 @@ void String_join(String *this, String *other) {
     String_append_buffer(this, other->data, other->length);
 }
 
-void String_print(String *this, OutStream outstream) {
+void String_print(const String *this, OutStream outstream) {
     OutStream_puts(outstream, this->data);
 }
 

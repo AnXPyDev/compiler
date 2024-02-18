@@ -1,5 +1,5 @@
 typedef struct {
-    EType_Primitive type;
+    EType_Basic type;
     union {
         int32_t I32;
     } value;
@@ -18,7 +18,7 @@ void PrimitiveValue_destroy(void *vthis) {
 }
 
 Type PrimitiveValue_getType(const void *vthis) {
-    return RT_primitiveTypes[this->type];
+    return RT_basicTypes[this->type];
 }
 
 // TODO optimize
@@ -51,7 +51,8 @@ const struct IValue IPrimitiveValue = {
     &PrimitiveValue_destroy,
     &PrimitiveValue_getType,
     &PrimitiveValue_print,
-    &PrimitiveValue_copy
+    &PrimitiveValue_copy,
+    &PrimitiveValue_move
 };
 
 PrimitiveValue PrimitiveValue_newInt(int32_t value) {

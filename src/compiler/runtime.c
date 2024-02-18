@@ -1,26 +1,36 @@
-PrimitiveType RT_primitiveTypes_[TYPE_PRIMITIVE__END];
-Type RT_primitiveTypes[TYPE_PRIMITIVE__END];
-
-MetaType RT_metaTypes_[TYPE_META__END];
-Type RT_metaTypes[TYPE_META__END];
+BasicType RT_basicTypes_[TYPE_BASIC__END];
+Type RT_basicTypes[TYPE_BASIC__END];
 
 Allocator RT_standardAllocator;
 Value RT_nullValue;
+Type RT_nullType;
 
 #define RT_ALLOC RT_standardAllocator
-#define RT_NULL RT_nullValue
+#define RT_NONE RT_nullValue
+#define RT_NONETYPE RT_nullType
+
+FileOutStream RT_STDERR_;
+FileOutStream RT_STDOUT_;
+FileInStream RT_STDIN_;
+
+OutStream RT_STDERR;
+OutStream RT_STDOUT;
+InStream RT_STDIN;
 
 void runtime_init() {
-    for (int i = 0; i < TYPE_PRIMITIVE__END; i++) {
-        RT_primitiveTypes_[i] = PrimitiveType_new(i);
-        RT_primitiveTypes[i] = PrimitiveType_Type(&RT_primitiveTypes_[i]);
-    }
-
-    for (int i = 0; i < TYPE_META__END; i++) {
-        RT_metaTypes_[i] = MetaType_new(i);
-        RT_metaTypes[i] = MetaType_Type(&RT_metaTypes_[i]);
+    for (int i = 0; i < TYPE_BASIC__END; i++) {
+        RT_basicTypes_[i] = BasicType_new(i);
+        RT_basicTypes[i] = BasicType_Type(&RT_basicTypes_[i]);
     }
 
     RT_standardAllocator = StandardAllocator_create();
-    RT_nullValue = Value_newNull();
+    RT_nullValue = NoneValue_create();
+    RT_nullType = RT_basicTypes[TYPE_META_NONE];
+
+    RT_STDERR_ = FileOutStream_new(stderr);
+    RT_STDERR = FileOutStream_OutStream(&RT_STDERR_);
+    RT_STDOUT_ = FileOutStream_new(stdout);
+    RT_STDOUT = FileOutStream_OutStream(&RT_STDOUT_);
+    RT_STDIN_ = FileInStream_new(stdin);
+    RT_STDIN = FileInStream_InStream(&RT_STDIN_);
 }

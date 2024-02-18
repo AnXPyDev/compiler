@@ -9,6 +9,12 @@ Token Token_new(Allocator allocator, const String *value) {
     return this;
 }
 
+Token Token_const_proxy(const char *str) {
+    Token this;
+    this.value = String_const_proxy(str);
+    return this;
+}
+
 Token Token_new_cstring(Allocator allocator, const char *str) {
     Token this;
     this.value = String_new(allocator);
@@ -24,10 +30,8 @@ void Token_destroy(Token *this) {
     String_destroy(&this->value);
 }
 
-void Token_print(Token *this, OutStream outstream) {
-    OutStream_puts(outstream, "<<");
+void Token_print(const Token *this, OutStream outstream) {
     String_print(&this->value, outstream);
-    OutStream_puts(outstream, ">>");
 }
 
 DataBuffer Token_DataBuffer(const Token *this) {

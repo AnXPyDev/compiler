@@ -26,6 +26,9 @@ void *Allocator_realloc(Allocator this, void *mem, Size size) {
 }
 
 void Allocator_free(Allocator this, void *mem) {
+    if (mem == NULL) {
+        return;
+    }
     return this.interface->free(this.object, mem);
 }
 
