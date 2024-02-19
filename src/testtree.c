@@ -1,4 +1,5 @@
-#include "compiler.c"
+#include "lib/include.h"
+#include "tree/include.h"
 
 Value builtin_test(Context *context, void *payload) {
     return RT_NONE;

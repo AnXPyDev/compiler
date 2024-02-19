@@ -27,10 +27,10 @@ void BasicType_print(const void *vthis, OutStream stream) {
             OutStream_puts(stream, "i32");
             break;
         case TYPE_META_ANY:
-            OutStream_puts(stream, "<<Any>>");
+            OutStream_puts(stream, "Any");
             break;
         case TYPE_META_EXPRESSION:
-            OutStream_puts(stream, "<<Expression>>");
+            OutStream_puts(stream, "Expression");
             break;
         default:
             OutStream_puts(stream, "?");

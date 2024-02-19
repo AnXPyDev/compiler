@@ -1,4 +1,6 @@
-#include "compiler.c"
+#include "lib/include.h"
+
+Allocator standardAllocator;
 
 void fprint_int(FILE *outstream, int *i) {
     fprintf(outstream, "%d", *i);
@@ -121,6 +123,8 @@ void test_map() {
 #undef keyc
 
 int main() {
+    standardAllocator = StandardAllocator_create();
+
     test_vector();
     test_map();
     test_stream();
