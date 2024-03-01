@@ -41,7 +41,7 @@ Value PrimitiveValue_copy(const void *vthis, Allocator allocator) {
     return PrimitiveValue_Value(copy);
 }
 
-Value PrimitiveValue_move(const void *vthis, Allocator allocator) {
+Value PrimitiveValue_move(void *vthis, Allocator allocator) {
     return PrimitiveValue_copy(vthis, allocator);
 }
 

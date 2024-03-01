@@ -22,9 +22,13 @@ int BasicType_equal(const void *vthis, const void *vother) {
 #undef other
 
 void BasicType_print(const void *vthis, OutStream stream) {
+    char buf[64];
     switch (this->type) {
         case TYPE_PRIMITIVE_I32:
-            OutStream_puts(stream, "i32");
+            OutStream_puts(stream, "I32");
+            break;
+        case TYPE_META_NONE:
+            OutStream_puts(stream, "None");
             break;
         case TYPE_META_ANY:
             OutStream_puts(stream, "Any");
@@ -32,9 +36,15 @@ void BasicType_print(const void *vthis, OutStream stream) {
         case TYPE_META_EXPRESSION:
             OutStream_puts(stream, "Expression");
             break;
+        case TYPE_META_TYPE:
+            OutStream_puts(stream, "Type");
+            break;
+        case TYPE_META_TOKEN:
+            OutStream_puts(stream, "Token");
+            break;
         default:
-            OutStream_puts(stream, "?");
-
+            sprintf(buf, "?%d?", (int)this->type);
+            OutStream_puts(stream, buf);
     }
 }
 

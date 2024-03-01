@@ -16,7 +16,7 @@ Value NoneValue_copy(const void *vthis, Allocator allocator) {
     return NoneValue_create();
 }
 
-Value NoneValue_move(const void *vthis, Allocator allocator) {
+Value NoneValue_move(void *vthis, Allocator allocator) {
     return NoneValue_create();
 }
 

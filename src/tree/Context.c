@@ -1,5 +1,6 @@
 typedef struct Context {
     struct Context *parent;
+    struct Context *global;
     Allocator allocator;
     Map store;
 } Context;
@@ -11,15 +12,15 @@ typedef struct {
     Value value;
 } Context_Slot;
 
-void Context_create(Context *this, Allocator allocator, Context *parent) {
+void Context_create(Context *this, Allocator allocator, Context *parent, Context *global) {
     this->parent = parent;
     this->allocator = allocator;
     this->store = Map_new(allocator, sizeof(Context_Slot));
 }
 
-Context Context_new(Allocator allocator, Context *parent) {
+Context Context_new(Allocator allocator, Context *parent, Context *global) {
     Context this;
-    Context_create(&this, allocator, parent);
+    Context_create(&this, allocator, parent, global);
     return this;
 }
 
@@ -28,28 +29,20 @@ Value Context_getValue(Context *this, const Token *token) {
     if (slot == NULL) {
         if (this->parent != NULL) {
             return Context_getValue(this->parent, token);
+        } else if (this->global != NULL) {
+            return Context_getValue(this->global, token);
         }
-        return RT_NONE;
+        return RT_nullValue;
     }
     if (slot->occupied == 0) {
-        return RT_NONE;
+        return RT_nullValue;
     }
     return slot->value;
 }
 
 typedef Value (*fn_Value_mover)(Value, Allocator);
 
-void Context_setValue(Context *this, const Token *token, Value value, fn_Value_mover mover) {
-    // TODO: type checking
-
-    Context_Slot *slot = Map_get_db(&this->store, Token_DataBuffer(token));
-    if (slot == NULL) {
-        if (this->parent != NULL) {
-            return Context_setValue(this->parent, token, value, mover);
-        }
-        return;
-    }
-
+void Context_setValueInSlot(Context *this, Context_Slot *slot, Value value, fn_Value_mover mover) {
     if (mover == NULL) {
         mover = &Value_copy;
     }
@@ -63,6 +56,22 @@ void Context_setValue(Context *this, const Token *token, Value value, fn_Value_m
     slot->value = moved;
 }
 
+void Context_setValue(Context *this, const Token *token, Value value, fn_Value_mover mover) {
+    // TODO: type checking
+
+    Context_Slot *slot = Map_get_db(&this->store, Token_DataBuffer(token));
+    if (slot == NULL) {
+        if (this->parent != NULL) {
+            return Context_setValue(this->parent, token, value, mover);
+        } else if (this->global != NULL) {
+            return Context_setValue(this->parent, token, value, mover);
+        }
+        return;
+    }
+
+    Context_setValueInSlot(this, slot, value, mover);
+}
+
 /*
 
 void Context_declare(Context *this, const Declaration *declaration) {
@@ -73,11 +82,13 @@ void Context_declare(Context *this, const Declaration *declaration) {
 
 */
 
-void Context_declare(Context *this, Type type, const Token *token) {
+Context_Slot *Context_declare(Context *this, Type type, const Token *token) {
     Context_Slot *slot = Map_ensure_db(&this->store, Token_DataBuffer(token));
     slot->occupied = 0;
     slot->type = Type_copy(type, this->allocator);
+    return slot;
 }
+
 
 void Context_Slot_destroy(Context *context, Context_Slot *this) {
     Value_destroy(this->value);
@@ -93,8 +104,4 @@ void *Context_store_destructor(void *item, void *payload) {
 void Context_destroy(Context *this) {
     Map_foreach(&this->store, &Context_store_destructor, this);
     Map_destroy(&this->store);
-}
-
-Context Context_inherit(Context *parent) {
-    return Context_new(parent->allocator, parent);
 }

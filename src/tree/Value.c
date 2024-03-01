@@ -10,7 +10,7 @@ struct IValue {
     const Type  (*getType)(const void *this);
     void  (*print  )(const void *this, OutStream stream);
     Value (*copy   )(const void *this, Allocator allocator);
-    Value (*move   )(const void *this, Allocator allocator);
+    Value (*move   )(void *this, Allocator allocator);
 };
 
 void Value_destroy(Value this) {

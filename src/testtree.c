@@ -28,7 +28,7 @@ Value func_test(Context *context, void *payload) {
 int main() {
     runtime_init();
 
-    Context ctx = Context_new(RT_ALLOC, NULL);
+    Context ctx = Context_new(RT_ALLOC, NULL, NULL);
 
     Token funcname = Token_const_proxy("func");
     Token argname = Token_const_proxy("arg1");
@@ -55,6 +55,7 @@ int main() {
     ex_getArgs.expressions = Vector_const_proxy(&ex_a1, sizeof(Expression), 1);
 
     CallExpression call;
+    call.behavior = ECALLEXPRESSION_NEW;
     call.callable = TokenExpression_Expression(&ex_getCallable);
     call.arguments = SequenceExpression_Expression(&ex_getArgs);
 

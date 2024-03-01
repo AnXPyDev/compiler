@@ -1,21 +1,27 @@
+typedef enum {
+    ECALLEXPRESSION_INHERIT, ECALLEXPRESSION_GLOBAL, ECALLEXPRESSION_NEW
+} CallExpression_ContextBehavior;
+
 typedef struct {
     Allocator allocator;
+    CallExpression_ContextBehavior behavior;
     Expression callable;
     Expression arguments;
 } CallExpression;
 
 extern const struct IExpression ICallExpression;
 
-CallExpression CallExpression_new(Allocator allocator, Expression callable, Expression arguments) {
+CallExpression CallExpression_new(Allocator allocator, CallExpression_ContextBehavior behavior, Expression callable, Expression arguments) {
     CallExpression this;
     this.allocator = allocator;
+    this.behavior = behavior;
     this.callable = Expression_copy(callable, allocator);
     this.arguments = Expression_copy(arguments, allocator);
     return this;
 }
 
 CallExpression CallExpression_new_(Allocator allocator, const CallExpression *src) {
-    return CallExpression_new(allocator, src->callable, src->arguments);
+    return CallExpression_new(allocator, src->behavior, src->callable, src->arguments);
 }
 
 Expression CallExpression_Expression(CallExpression *this) {
@@ -32,23 +38,9 @@ void CallExpression_destroy(void *vthis) {
     Expression_free(this->arguments, this->allocator);
 }
 
-int Value_isCallable(Value value) {
-    if (value.interface == &ICallableValue) {
-        return 1;
-    }
-    return 0;
-}
-
-int Value_isSequence(Value value) {
-    if (value.interface == &ISequenceValue) {
-        return 1;
-    }
-    return 0;
-}
-
 Value CallExpression_evaluate(const void *vthis, Context *context) {
     Value callable = Expression_evaluate(this->callable, context);
-    if (!Value_isCallable(callable)) {
+    if (!CallableValue_is(callable)) {
         fprintf(stderr, "Value is not callable\n");
         goto error;
     }
@@ -56,7 +48,7 @@ Value CallExpression_evaluate(const void *vthis, Context *context) {
     CallableValue *func = callable.object;
 
     Value arguments = Expression_evaluate(this->arguments, context);
-    if (!Value_isSequence(arguments)) {
+    if (!SequenceValue_is(arguments)) {
         fprintf(stderr, "Arguments is not a sequence\n");
         goto error;
     }
@@ -66,7 +58,18 @@ Value CallExpression_evaluate(const void *vthis, Context *context) {
         fprintf(stderr, "Sequence types do not match\n");
     }
 
-    Context inner_ctx = Context_inherit(context);
+    Context inner_ctx;
+    switch (this->behavior) {
+        case ECALLEXPRESSION_NEW:
+            inner_ctx = Context_new(context->allocator, NULL, NULL);
+            break;
+        case ECALLEXPRESSION_INHERIT:
+            inner_ctx = Context_new(context->allocator, context, context->global);
+            break;
+        case ECALLEXPRESSION_GLOBAL:
+            inner_ctx = Context_new(context->allocator, NULL, context->global);
+            break;
+    }
 
     Vector *types = &args->type.elements;
     Vector *tokens = &func->arguments;
@@ -80,6 +83,8 @@ Value CallExpression_evaluate(const void *vthis, Context *context) {
         Value value = *(Value*)Vector_get(values, i);
 
         Context_declare(&inner_ctx, type, token);
+
+        // TODO: Optimize to get context slot when declaring
         Context_setValue(&inner_ctx, token, value, &Value_copy);
     }
 

@@ -47,7 +47,7 @@ Value CallableValue_copy(const void *vthis, Allocator allocator) {
     return CallableValue_Value(copy);
 }
 
-Value CallableValue_move(const void *vthis, Allocator allocator) {
+Value CallableValue_move(void *vthis, Allocator allocator) {
     // TODO implement moving
     return CallableValue_copy(vthis, allocator);
 }
@@ -78,6 +78,10 @@ void CallableValue_print(const void *vthis, OutStream stream) {
 }
 
 #undef this
+
+int CallableValue_is(Value value) {
+    return value.interface == &ICallableValue;
+}
 
 const struct IValue ICallableValue = {
     &CallableValue_destroy,

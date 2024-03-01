@@ -48,7 +48,7 @@ Value SequenceValue_copy(const void *vthis, Allocator allocator) {
     return SequenceValue_Value(copy);
 }
 
-Value SequenceValue_move(const void *vthis, Allocator allocator) {
+Value SequenceValue_move(void *vthis, Allocator allocator) {
     return SequenceValue_copy(vthis, allocator);
 }
 
@@ -73,6 +73,10 @@ void SequenceValue_print(const void *vthis, OutStream stream) {
 }
 
 #undef this
+
+int SequenceValue_is(Value value) {
+    return value.interface == &ISequenceValue;
+}
 
 const struct IValue ISequenceValue = {
     &SequenceValue_destroy,

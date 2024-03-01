@@ -4,10 +4,12 @@ Type RT_basicTypes[TYPE_BASIC__END];
 Allocator RT_standardAllocator;
 Value RT_nullValue;
 Type RT_nullType;
+Expression RT_nullExpression;
 
 #define RT_ALLOC RT_standardAllocator
 #define RT_NONE RT_nullValue
 #define RT_NONETYPE RT_nullType
+#define RT_NONEX RT_nullExpression
 
 FileOutStream RT_STDERR_;
 FileOutStream RT_STDOUT_;
@@ -27,10 +29,16 @@ void runtime_init() {
     RT_nullValue = NoneValue_create();
     RT_nullType = RT_basicTypes[TYPE_META_NONE];
 
+    RT_nullExpression = NoneExpression_create();
+
     RT_STDERR_ = FileOutStream_new(stderr);
     RT_STDERR = FileOutStream_OutStream(&RT_STDERR_);
     RT_STDOUT_ = FileOutStream_new(stdout);
     RT_STDOUT = FileOutStream_OutStream(&RT_STDOUT_);
     RT_STDIN_ = FileInStream_new(stdin);
     RT_STDIN = FileInStream_InStream(&RT_STDIN_);
+}
+
+void runtime_shutdown() {
+    Expression_destroy(RT_nullExpression);
 }
