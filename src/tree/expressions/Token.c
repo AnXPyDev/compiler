@@ -22,7 +22,7 @@ void TokenExpression_destroy(void *vthis) {
 }
 
 Value TokenExpression_evaluate(const void *vthis, Context *context) {
-    return Context_getValue(context, &this->token);
+    return Value_copy(Context_getValue(context, &this->token), context->allocator);
 }
 
 void TokenExpression_print(const void *vthis, OutStream stream) {

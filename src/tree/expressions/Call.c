@@ -1,5 +1,5 @@
 typedef enum {
-    ECALLEXPRESSION_INHERIT, ECALLEXPRESSION_GLOBAL, ECALLEXPRESSION_NEW
+    ECALLEXPRESSION_SUB, ECALLEXPRESSION_GLOBAL
 } CallExpression_ContextBehavior;
 
 typedef struct {
@@ -40,30 +40,42 @@ void CallExpression_destroy(void *vthis) {
 
 Value CallExpression_evaluate(const void *vthis, Context *context) {
     Value callable = Expression_evaluate(this->callable, context);
+    if (ProjectileValue_is(callable)) {
+        return callable;
+    }
+
     if (!CallableValue_is(callable)) {
-        fprintf(stderr, "Value is not callable\n");
-        goto error;
+        Value err = runtime_errmsg(context->allocator, "CallExpression: callable eval returned non callable value");
+        Value_delete(callable, context->allocator);
+        return err;
     }
 
     CallableValue *func = callable.object;
 
     Value arguments = Expression_evaluate(this->arguments, context);
+    if (ProjectileValue_is(arguments)) {
+        Value_delete(callable, context->allocator);
+        return arguments;
+    }
+
     if (!SequenceValue_is(arguments)) {
-        fprintf(stderr, "Arguments is not a sequence\n");
-        goto error;
+        Value err = runtime_errmsg(context->allocator, "CallExpression: arguments eval returned non sequence value");
+        Value_delete(callable, context->allocator);
+        Value_delete(arguments, context->allocator);
+        return err;
     }
 
     SequenceValue *args = arguments.object;
     if (!SequenceType_equal(&func->type.args, &args->type)) {
-        fprintf(stderr, "Sequence types do not match\n");
+        Value err = runtime_errmsg(context->allocator, "CallExpression: arguments sequence type does not match");
+        Value_delete(callable, context->allocator);
+        Value_delete(arguments, context->allocator);
+        return err;
     }
 
     Context inner_ctx;
     switch (this->behavior) {
-        case ECALLEXPRESSION_NEW:
-            inner_ctx = Context_new(context->allocator, NULL, NULL);
-            break;
-        case ECALLEXPRESSION_INHERIT:
+        case ECALLEXPRESSION_SUB:
             inner_ctx = Context_new(context->allocator, context, context->global);
             break;
         case ECALLEXPRESSION_GLOBAL:
@@ -89,23 +101,24 @@ Value CallExpression_evaluate(const void *vthis, Context *context) {
     }
 
     Value ret = Expression_evaluate(func->expression, &inner_ctx);
+    Context_destroy(&inner_ctx);
 
-    Value_destroy(callable);
-    Value_free(callable, context->allocator);
-
-    Value_destroy(arguments);
-    Value_free(arguments, context->allocator);
+    Value_delete(callable, context->allocator);
+    Value_delete(arguments, context->allocator);
 
     return ret;
-
-    error:;
-
-    // Implement throwing
-    return RT_NONE;
 }
 
 void CallExpression_print(const void *vthis, OutStream stream) {
     OutStream_puts(stream, "CallExpression{ ");
+    switch (this->behavior) {
+        case ECALLEXPRESSION_SUB:
+            OutStream_puts(stream, "SUB; ");
+            break;
+        case ECALLEXPRESSION_GLOBAL:
+            OutStream_puts(stream, "GLOBAL; ");
+            break;
+    }
     Expression_print(this->callable, stream);
     OutStream_puts(stream, "; ");
     Expression_print(this->arguments, stream);

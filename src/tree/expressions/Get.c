@@ -32,20 +32,21 @@ void GetExpression_destroy(void *vthis) {
 Value GetExpression_evaluate(const void *vthis, Context *context) {
     Value token = Expression_evaluate(this->token, context);
     if (!TokenValue_is(token)) {
-        fprintf(stderr, "Value is not token");
-        goto error;
+        Value_destroy(token);
+        Value_free(token, context->allocator);
+        return runtime_errmsg(context->allocator, "GetExpression: token eval result is not a TokenValue");
     }
 
     TokenValue *tokenval = token.object;
 
-    return Context_getValue(context, &tokenval->token);
+    Value ret = Value_copy(Context_getValue(context, &tokenval->token), context->allocator);
+    Value_destroy(token);
+    Value_free(token, context->allocator);
 
-    error:;
-    return RT_NONE;
+    return ret;
 }
 
 void GetExpression_print(const void *vthis, OutStream stream) {
-
     OutStream_puts(stream, "Get{ ");
     Expression_print(this->token, stream);
     OutStream_puts(stream, " }");

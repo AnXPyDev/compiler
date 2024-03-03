@@ -36,3 +36,8 @@ Value Value_move(const Value this, Allocator allocator) {
 void Value_free(Value this, Allocator allocator) {
     return Allocator_free(allocator, this.object);
 }
+
+void Value_delete(Value this, Allocator allocator) {
+    Value_destroy(this);
+    Value_free(this, allocator);
+}

@@ -49,8 +49,8 @@ Value SetExpression_evaluate(const void *vthis, Context *context) {
 
     Value token = Expression_evaluate(this->token, context);
     if (!TokenValue_is(token)) {
-        fprintf(stderr, "Value is not token");
-        goto error;
+        Value_delete(token, context->allocator);
+        return runtime_errmsg(context->allocator, "SetExpression: token eval result is not TokenValue");
     }
 
     TokenValue *tokenval = token.object;
@@ -63,8 +63,9 @@ Value SetExpression_evaluate(const void *vthis, Context *context) {
 
     Value type = Expression_evaluate(this->type, context);
     if (!TypeValue_is(type)) {
-        fprintf(stderr, "Value is not type");
-        goto error;
+        Value_delete(token, context->allocator);
+        Value_delete(type, context->allocator);
+        return runtime_errmsg(context->allocator, "SetExpression: type eval result is not TypeValue");
     }
 
     TypeValue *typeval = type.object;
@@ -77,6 +78,11 @@ Value SetExpression_evaluate(const void *vthis, Context *context) {
     set:;
 
     Value value = Expression_evaluate(this->value, context);
+    if (ProjectileValue_is(value)) {
+        Value_delete(token, context->allocator);
+        Value_delete(type, context->allocator);
+        return value;
+    }
 
     if (slot == NULL) {
         Context_setValue(context, &tokenval->token, value, NULL);
@@ -85,9 +91,6 @@ Value SetExpression_evaluate(const void *vthis, Context *context) {
     }
 
     return value;
-
-    error:;
-    return RT_NONE;
 }
 
 void SetExpression_print(const void *vthis, OutStream stream) {

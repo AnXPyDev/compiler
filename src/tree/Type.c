@@ -20,7 +20,13 @@ Type Type_copy(const Type this, Allocator allocator) {
     return this.interface->copy(this.object, allocator);
 }
 
-int Type_equal(const Type this, const Type other) {
+extern int Type_isAny(Type this);
+
+int Type_equal(Type this, Type other) {
+    if (Type_isAny(this)) {
+        return 1;
+    }
+
     if (this.object == other.object) {
         return 1;
     }

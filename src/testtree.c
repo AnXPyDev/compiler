@@ -55,11 +55,13 @@ int main() {
     ex_getArgs.expressions = Vector_const_proxy(&ex_a1, sizeof(Expression), 1);
 
     CallExpression call;
-    call.behavior = ECALLEXPRESSION_NEW;
+    call.behavior = ECALLEXPRESSION_GLOBAL;
     call.callable = TokenExpression_Expression(&ex_getCallable);
     call.arguments = SequenceExpression_Expression(&ex_getArgs);
 
     CallExpression_evaluate(&call, &ctx);
 
     Context_destroy(&ctx);
+
+    runtime_shutdown();
 }

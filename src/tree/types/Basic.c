@@ -72,3 +72,11 @@ BasicType BasicType_new(EType_Basic type) {
     this.type = type;
     return this;
 }
+
+int Type_isAny(Type type) {
+    if (type.interface == &IBasicType) {
+        BasicType *this = type.object;
+        return this->type == TYPE_META_ANY;
+    }
+    return 0;
+}

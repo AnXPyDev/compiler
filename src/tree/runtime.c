@@ -1,24 +1,3 @@
-BasicType RT_basicTypes_[TYPE_BASIC__END];
-Type RT_basicTypes[TYPE_BASIC__END];
-
-Allocator RT_standardAllocator;
-Value RT_nullValue;
-Type RT_nullType;
-Expression RT_nullExpression;
-
-#define RT_ALLOC RT_standardAllocator
-#define RT_NONE RT_nullValue
-#define RT_NONETYPE RT_nullType
-#define RT_NONEX RT_nullExpression
-
-FileOutStream RT_STDERR_;
-FileOutStream RT_STDOUT_;
-FileInStream RT_STDIN_;
-
-OutStream RT_STDERR;
-OutStream RT_STDOUT;
-InStream RT_STDIN;
-
 void runtime_init() {
     for (int i = 0; i < TYPE_BASIC__END; i++) {
         RT_basicTypes_[i] = BasicType_new(i);
@@ -41,4 +20,29 @@ void runtime_init() {
 
 void runtime_shutdown() {
     Expression_destroy(RT_nullExpression);
+}
+
+Value runtime_projectile(Allocator allocator, Value value) {
+    ProjectileValue *projectile = Allocator_malloc(allocator, sizeof(ProjectileValue)); 
+    *projectile = ProjectileValue_new(allocator, value);
+    return ProjectileValue_Value(projectile);
+}
+
+Value runtime_errno(Allocator allocator, int errcode) {
+    PrimitiveValue errnum = PrimitiveValue_newInt(errcode);
+    Value err = runtime_projectile(allocator, PrimitiveValue_Value(&errnum));
+    PrimitiveValue_destroy(&errnum);
+    return err;
+}
+
+Value runtime_errsmsg(Allocator allocator, const String *message) {
+    MessageValue msg = MessageValue_new(allocator, message);
+    Value err = runtime_projectile(allocator, MessageValue_Value(&msg));
+    MessageValue_destroy(&msg);
+    return err;
+}
+
+Value runtime_errmsg(Allocator allocator, const char *message) {
+    String s = String_const_proxy(message);
+    return runtime_errsmsg(allocator, &s);
 }

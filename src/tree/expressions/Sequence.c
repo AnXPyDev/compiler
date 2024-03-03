@@ -69,6 +69,11 @@ Value SequenceExpression_evaluate(const void *vthis, Context *context) {
 
     for (Expression *e = Vector_begin(&this->expressions); e < (Expression*)Vector_end(&this->expressions); e++) {
         Value res = Expression_evaluate(*e, context);
+        if (ProjectileValue_is(res)) {
+            SequenceValue_destroy(value);
+            Allocator_free(allocator, value);
+            return res;
+        }
         *(Value*)Vector_push_unsafe(&value->elements) = res;
         *(Type*)Vector_push_unsafe(&value->type.elements) = Type_copy(Value_getType(res), allocator);
     }

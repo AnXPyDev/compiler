@@ -21,6 +21,13 @@ Value ProjectileValue_Value(ProjectileValue *this) {
     return value;
 }
 
+Value ProjectileValue_create_move(Allocator allocator, Allocator value_allocator, Value value) {
+    ProjectileValue *this = Allocator_malloc(allocator, sizeof(ProjectileValue));
+    this->allocator = value_allocator;
+    this->value = value;
+    return ProjectileValue_Value(this);
+}
+
 #define this ((ProjectileValue*)vthis)
 
 void ProjectileValue_destroy(void *vthis) {
